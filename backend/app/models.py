@@ -2,7 +2,9 @@ import uuid
 from datetime import UTC, datetime
 
 from pydantic import EmailStr
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import AutoString, Field, Relationship, SQLModel
+
+from app.core.permissions import Permission, UserRole
 
 
 def get_datetime_utc() -> datetime:
@@ -13,7 +15,8 @@ def get_datetime_utc() -> datetime:
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
-    is_superuser: bool = False
+    # VARCHAR instead of a native Postgres enum, so adding a role needs no migration
+    role: UserRole = Field(default=UserRole.MEMBER, sa_type=AutoString(length=32))
     full_name: str | None = Field(default=None, max_length=255)
 
 
@@ -32,7 +35,7 @@ class UserRegister(SQLModel):
 class UserUpdate(SQLModel):
     email: EmailStr | None = Field(default=None, max_length=255)
     is_active: bool | None = None
-    is_superuser: bool | None = None
+    role: UserRole | None = None
     full_name: str | None = Field(default=None, max_length=255)
     password: str | None = Field(default=None, min_length=8, max_length=128)
 
@@ -59,6 +62,11 @@ class User(UserBase, table=True):
 class UserPublic(UserBase):
     id: uuid.UUID
     created_at: datetime | None = None
+
+
+# Current user plus their permissions, so the frontend never duplicates the role map
+class UserMe(UserPublic):
+    permissions: list[Permission]
 
 
 class UsersPublic(SQLModel):
@@ -103,6 +111,13 @@ class ItemPublic(ItemBase):
 class ItemsPublic(SQLModel):
     data: list[ItemPublic]
     count: int
+
+
+class MetricsPublic(SQLModel):
+    total_users: int
+    active_users: int
+    users_by_role: dict[UserRole, int]
+    total_items: int
 
 
 # Generic message
