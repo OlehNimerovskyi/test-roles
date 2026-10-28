@@ -3,6 +3,11 @@
 [![Test Docker Compose](../../actions/workflows/test-docker-compose.yml/badge.svg)](../../actions/workflows/test-docker-compose.yml)
 [![Test Backend](../../actions/workflows/test-backend.yml/badge.svg)](../../actions/workflows/test-backend.yml)
 
+This repository contains two test tasks:
+
+- **Task 1: role-based access control** for the Full Stack FastAPI Template. It's documented [below](#role-based-access-control), with decisions and trade-offs in [NOTES.md](./NOTES.md).
+- **Task 2: a one-click script that deploys Ghost to a Hetzner server** with no public SSH, reachable only through a Cloudflare Tunnel. See [infra/ghost-hetzner](./infra/ghost-hetzner/README.md).
+
 ## Role-Based Access Control
 
 This project adds three roles, **admin**, **manager** and **member**, enforced in both the API and the UI.
