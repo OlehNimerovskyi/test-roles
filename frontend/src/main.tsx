@@ -19,11 +19,9 @@ client.setConfig({
   auth: () => localStorage.getItem("access_token") || "",
 })
 
+// Only 401 means the session is invalid; 403 is a permission error shown in the UI
 const handleApiError = (error: Error) => {
-  if (
-    error instanceof AxiosError &&
-    [401, 403].includes(error.response?.status ?? 0)
-  ) {
+  if (error instanceof AxiosError && error.response?.status === 401) {
     localStorage.removeItem("access_token")
     window.location.href = "/login"
   }

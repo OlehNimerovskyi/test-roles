@@ -1,4 +1,7 @@
 import { expect, type Page } from "@playwright/test"
+import type { UserRole } from "../../src/client"
+import { createUser } from "./privateApi"
+import { randomEmail, randomPassword } from "./random"
 
 export async function signUpNewUser(
   page: Page,
@@ -32,4 +35,12 @@ export async function logOutUser(page: Page) {
   await page.getByTestId("user-menu").click()
   await page.getByRole("menuitem", { name: "Log out" }).click()
   await page.goto("/login")
+}
+
+export async function logInAsNewUser(page: Page, role: UserRole) {
+  const email = randomEmail()
+  const password = randomPassword()
+  await createUser({ email, password, role })
+  await logInUser(page, email, password)
+  return { email, password }
 }

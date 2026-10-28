@@ -1,6 +1,6 @@
 // Note: the `PrivateService` is only available when generating the client
 // for local environments
-import { PrivateService } from "../../src/client"
+import { PrivateService, type UserRole } from "../../src/client"
 import { client } from "../../src/client/client.gen"
 
 client.setConfig({
@@ -10,9 +10,11 @@ client.setConfig({
 export const createUser = async ({
   email,
   password,
+  role = "member",
 }: {
   email: string
   password: string
+  role?: UserRole
 }) => {
   const response = await PrivateService.createUser({
     body: {
@@ -20,6 +22,7 @@ export const createUser = async ({
       password,
       is_verified: true,
       full_name: "Test User",
+      role,
     },
   })
   return response.data

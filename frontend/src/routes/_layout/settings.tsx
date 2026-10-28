@@ -25,9 +25,11 @@ export const Route = createFileRoute("/_layout/settings")({
 
 function UserSettings() {
   const { user: currentUser } = useAuth()
-  const finalTabs = currentUser?.is_superuser
-    ? tabsConfig.slice(0, 3)
-    : tabsConfig
+  // Mirrors the backend rule that admins can't delete their own account
+  const finalTabs =
+    currentUser?.role === "admin"
+      ? tabsConfig.filter((tab) => tab.value !== "danger-zone")
+      : tabsConfig
 
   if (!currentUser) {
     return null

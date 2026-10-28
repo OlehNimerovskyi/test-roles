@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
 
+import { Badge } from "@/components/ui/badge"
 import useAuth from "@/hooks/useAuth"
+import { ROLE_LABELS } from "@/lib/roles"
 
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
@@ -25,6 +27,11 @@ function Dashboard() {
         <p className="text-muted-foreground">
           Welcome back, nice to see you again!!!
         </p>
+        {currentUser?.role && (
+          <Badge variant="secondary" className="mt-2">
+            {ROLE_LABELS[currentUser.role]}
+          </Badge>
+        )}
       </div>
     </div>
   )

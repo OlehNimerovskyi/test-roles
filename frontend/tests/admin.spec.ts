@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test"
 import { firstSuperuser, firstSuperuserPassword } from "./config.ts"
-import { createUser } from "./utils/privateApi"
 import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser } from "./utils/user"
 
@@ -42,7 +41,7 @@ test.describe("Admin user management", () => {
     await expect(userRow).toBeVisible()
   })
 
-  test("Create a superuser", async ({ page }) => {
+  test("Create an admin", async ({ page }) => {
     await page.goto("/admin")
 
     const email = randomEmail()
@@ -53,7 +52,8 @@ test.describe("Admin user management", () => {
     await page.getByPlaceholder("Email").fill(email)
     await page.getByPlaceholder("Password").first().fill(password)
     await page.getByPlaceholder("Password").last().fill(password)
-    await page.getByLabel("Is superuser?").check()
+    await page.getByRole("combobox", { name: "Role" }).click()
+    await page.getByRole("option", { name: "Admin" }).click()
     await page.getByLabel("Is active?").check()
 
     await page.getByRole("button", { name: "Save" }).click()
@@ -63,7 +63,7 @@ test.describe("Admin user management", () => {
     await expect(page.getByRole("dialog")).not.toBeVisible()
 
     const userRow = page.getByRole("row").filter({ hasText: email })
-    await expect(userRow.getByText("Superuser")).toBeVisible()
+    await expect(userRow.getByText("Admin", { exact: true })).toBeVisible()
   })
 
   test("Edit a user successfully", async ({ page }) => {
@@ -182,20 +182,8 @@ test.describe("Admin user management", () => {
 test.describe("Admin page access control", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
-  test("Non-superuser cannot access admin page", async ({ page }) => {
-    const email = randomEmail()
-    const password = randomPassword()
-
-    await createUser({ email, password })
-    await logInUser(page, email, password)
-
-    await page.goto("/admin")
-
-    await expect(page.getByRole("heading", { name: "Users" })).not.toBeVisible()
-    await expect(page).not.toHaveURL(/\/admin/)
-  })
-
-  test("Superuser can access admin page", async ({ page }) => {
+  // Denied access for other roles is covered in rbac.spec.ts
+  test("Admin can access users page", async ({ page }) => {
     await logInUser(page, firstSuperuser, firstSuperuserPassword)
 
     await page.goto("/admin")

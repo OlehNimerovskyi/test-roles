@@ -1,13 +1,15 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { createFileRoute, redirect } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router"
 import { Suspense } from "react"
 
 import { type UserPublic, UsersService } from "@/client"
 import AddUser from "@/components/Admin/AddUser"
 import { columns, type UserTableData } from "@/components/Admin/columns"
 import { DataTable } from "@/components/Common/DataTable"
+import RequirePermission from "@/components/Common/RequirePermission"
 import PendingUsers from "@/components/Pending/PendingUsers"
 import useAuth from "@/hooks/useAuth"
+import usePermissions from "@/hooks/usePermissions"
 
 function getUsersQueryOptions() {
   return {
@@ -19,18 +21,10 @@ function getUsersQueryOptions() {
 
 export const Route = createFileRoute("/_layout/admin")({
   component: Admin,
-  beforeLoad: async () => {
-    const { data: user } = await UsersService.readUserMe()
-    if (!user.is_superuser) {
-      throw redirect({
-        to: "/",
-      })
-    }
-  },
   head: () => ({
     meta: [
       {
-        title: "Admin - FastAPI Template",
+        title: "Users - FastAPI Template",
       },
     ],
   }),
@@ -56,19 +50,32 @@ function UsersTable() {
   )
 }
 
-function Admin() {
+function UsersPage() {
+  const { can } = usePermissions()
+  const canCreateUsers = can("users:create")
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Users</h1>
           <p className="text-muted-foreground">
-            Manage user accounts and permissions
+            {canCreateUsers
+              ? "Manage user accounts and permissions"
+              : "View user accounts and their roles"}
           </p>
         </div>
-        <AddUser />
+        {canCreateUsers && <AddUser />}
       </div>
       <UsersTable />
     </div>
+  )
+}
+
+function Admin() {
+  return (
+    <RequirePermission permission="users:read">
+      <UsersPage />
+    </RequirePermission>
   )
 }
